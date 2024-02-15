@@ -1,0 +1,56 @@
+Sub ReplaceTerminalsAndZip()
+    Dim wb As Workbook, thisWb As Workbook
+    Dim ws As Worksheet, thisWs As Worksheet
+    Dim i As Long, lRow As Long
+    Dim MyFile As String
+    Dim FilePath As String
+
+    '~~> This is the workbook from where your code is running
+    Set thisWb = ThisWorkbook
+    Set thisWs = thisWb.Sheets("Ëèñò1")
+
+    '~~> File.xlsx
+    FilePath = ThisWorkbook.Path & "\"
+    MyFile = Dir(ThisWorkbook.Path & "\*.xlsx")
+    
+    'zip
+    str7ZipPath = "C:\Program Files\7-Zip\7z.exe"
+
+    
+    Do While Len(MyFile) > 0
+        Set wb = Workbooks.Open(FilePath & MyFile)
+        'Loop over the worksheets
+        'Note: no need to activate/select
+        Set ws = wb.Worksheets(1) 'ïåðâûé ëèñò
+        With ws
+            '~~> Find last row in Col F of File.xlsx
+            lRow = .Range("F" & .Rows.Count).End(xlUp).Row
+
+            '~~> Loop though Col F
+            For i = 1 To lRow
+                '~~> Do the replace
+                ws.Columns(6).Replace What:=thisWs.Range("B" & i).Value, _
+                                      Replacement:=thisWs.Range("A" & i).Value, _
+                                      SearchOrder:=xlByColumns, _
+                                      MatchCase:=False
+            Next i
+        End With
+        
+        'óäàëèòü íåíóæíûå êîëîíêè
+        ws.Range("A:A, B:B, C:C, E:E").Delete
+        'âñòàâèòü êîëîíêó "íîìåð ï/ï"
+        ws.Columns(4).EntireColumn.Insert
+        ws.Range("D2").Value = "íîìåð ï/ï"
+        
+        wbName = wb.FullName
+        
+        wb.Close savechanges:=True
+        
+        zipFile = FilePath & "zip\" & MyFile
+        zipFile = Replace(zipFile, "xlsx", "zip")
+        strCommand = str7ZipPath & " a -tzip """ & zipFile & """ """ & wbName & """"
+        Shell strCommand
+        MyFile = Dir
+    Loop
+    
+End Sub

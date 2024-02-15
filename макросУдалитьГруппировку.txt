@@ -1,0 +1,31 @@
+Если у Вас будет сохранена группировка строк то можете сделать так:
+Выделяйте Ваши данные (только данные с группировкой, см.рисунок, не нужно выделять весь столбец) и жмите на кнопку
+
+
+
+
+
+
+
+Sub Макрос1()
+Dim arr As Variant, arr1 As Variant, n As Long, m As Integer
+arr1 = Selection.Columns("A:A")
+ReDim arr(1 To UBound(arr1), 1 To 1)
+Set Dict = CreateObject("System.Collections.ArrayList")
+For Each r In Selection.Rows
+    n = n + 1
+    If Not Dict.contains(r.OutlineLevel) Then
+        Dict.Add r.OutlineLevel
+        If Dict.Count > 1 Then ReDim Preserve arr(1 To UBound(arr), 1 To UBound(arr, 2) + 1)
+    End If
+    arr(n, Dict.LastIndexOf(r.OutlineLevel) + 1) = arr1(n, 1)
+    If Dict.LastIndexOf(r.OutlineLevel) + 1 > 1 And n > 1 Then
+        For m = Dict.LastIndexOf(r.OutlineLevel) To 1 Step -1
+            arr(n, m) = arr(n - 1, m)
+        Next
+    End If
+Next
+Columns(1).Resize(, Dict.Count).Insert Shift:=xlToRight
+Selection(1).Resize(UBound(arr), UBound(arr, 2)).NumberFormat = "@"
+Selection(1).Resize(UBound(arr), UBound(arr, 2)) = arr
+End Sub
